@@ -4,19 +4,17 @@ import './App.css';
 
 function City({ location, state, long, lat, population, wages }) {
   return (
-    <div className="d-flex justify-content-center">
-      <div className="card w-50">
-        <div className="card-header font-weight-bold">
-          {location}
-        </div>
-        <div className="card-body">
-          <ul>
-            <li className="card-text">State: {state}</li>
-            <li className="card-text">Location: ({lat}, {long})</li>
-            <li className="card-text">Population (estimated): {population}</li>
-            <li className="card-text">Total Wages: {wages}</li>
-          </ul>
-        </div>
+    <div className="card">
+      <div className="card-header font-weight-bold">
+        {location}
+      </div>
+      <div className="card-body">
+        <ul>
+          <li className="card-text">State: {state}</li>
+          <li className="card-text">Location: ({lat}, {long})</li>
+          <li className="card-text">Population (estimated): {population ? population : 'unknown'}</li>
+          <li className="card-text">Total Wages: {wages ? wages : 'unknown'}</li>
+        </ul>
       </div>
     </div>
   );
@@ -24,14 +22,12 @@ function City({ location, state, long, lat, population, wages }) {
 
 function ZipSearchField({ onChange }) {
   return (
-    <div className="container">
-      <div className="my-4 d-flex justify-content-center">
-        <div className="input-group mw-25" style={{ width: "300px" }}>
-          <div className="input-group-prepend">
-            <label className="input-group-text">Zip Code</label>
-          </div>
-          <input className="form-control" type='text' onChange={onChange} />
+    <div className="my-4 d-flex justify-content-center">
+      <div className="input-group">
+        <div className="input-group-prepend">
+          <span className="input-group-text">Zip Code</span>
         </div>
+        <input className="form-control" type='text' pattern="[0-9]" onChange={onChange} />
       </div>
     </div>
   )
@@ -43,37 +39,37 @@ class App extends Component {
     super(props);
     this.state = {
       zipCode: '',
-      cityData: [],
-      isResult: false
+      cityData: []
     }
   }
 
   async zipChanged(e) {
     let zip = e.target.value;
 
-    fetch(`http://ctp-zip-api.herokuapp.com/zip/${zip}`)
-      .then(response => {
-        if (this.state.isResult) {
-          this.setState({
-            isResult: false
-          })
-        }
-        if (!response.ok) {
-          throw new Error('Invalid Zip Code');
-        }
-        return response.json();
-      })
-      .then(success => {
-        this.setState({
-          cityData: success,
-          isResult: true
+    if (zip.length === 5) {
+      fetch(`http://ctp-zip-api.herokuapp.com/zip/${zip}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Invalid Zip Code');
+          }
+          return response.json();
         })
-      })
-      .catch(error => console.log(error));
+        .then(success => {
+          this.setState({
+            cityData: success
+          })
+        })
+        .catch(err => {
+          this.setState({ cityData: [] });
+          console.log(err);
+        });
 
-    this.setState({
-      zipCode: zip
-    })
+      this.setState({
+        zipCode: zip
+      })
+    } else {
+      this.setState({ cityData: [] });
+    }
   }
 
   //make the city display dynamically
@@ -83,29 +79,35 @@ class App extends Component {
         <div className="App-header">
           <h2>Zip Code Search</h2>
         </div>
-        <ZipSearchField onChange={e => this.zipChanged(e)} />
         <div className="container">
-          {this.state.isResult ?
-            <ul>
-              {
-                this.state.cityData.map((item, index) => {
-                  return (
-                    <li className="mb-3" style={{ listStyleType: 'none' }} key={index}>
-                      <City
-                        location={item.LocationText}
-                        long={item.Long}
-                        lat={item.Lat}
-                        state={item.State}
-                        population={item.EstimatedPopulation}
-                        wages={item.TotalWages} />
-                    </li>
-                  )
-                }
-                )
-              }
-            </ul>
+          <div className="row d-flex justify-content-center">
+            <div className="col-lg-6 mx-auto">
+              <ZipSearchField onChange={e => this.zipChanged(e)} />
+            </div>
+          </div>
+          {this.state.cityData.length > 0 ?
+            this.state.cityData.map((item) => {
+              return (
+                <div className="row mb-3 d-flex justify-content-center" key={item.RecordNumber}>
+                  <div className="col-lg-6 mx-auto">
+                    <City
+                      location={item.LocationText}
+                      long={item.Long}
+                      lat={item.Lat}
+                      state={item.State}
+                      population={item.EstimatedPopulation}
+                      wages={item.TotalWages} />
+                  </div>
+                </div>
+              )
+            }
+            )
             :
-            <h4 className="d-flex justify-content-center">No results</h4>
+            <div className="row d-flex justify-content-center">
+              <div className="col-lg-6">
+                <h4 className="text-center">No results</h4>
+              </div>
+            </div>
           }
         </div>
       </div>
