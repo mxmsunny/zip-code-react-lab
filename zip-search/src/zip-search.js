@@ -44,8 +44,10 @@ class App extends Component {
 
     async zipChanged(e) {
         let zip = e.target.value;
+        let digitReg = /^[0-9]+$/; //using regex with the suggestion of a classmate
 
-        if (zip.length === 5) {
+        //match method returns array if match, null if not. with the regex here, it will return null if it is not a digit.
+        if (zip.length === 5 && zip.match(digitReg) !== null) {
             fetch(`http://ctp-zip-api.herokuapp.com/zip/${zip}`)
                 .then(response => {
                     if (!response.ok) {
