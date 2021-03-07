@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import CitySearchField from './components/CitySearchField';
+import ToggleView from './components/ToggleView'
 import './App.css';
 
 const CitySearch = () => {
@@ -10,7 +12,7 @@ const CitySearch = () => {
     let regex = /^[^0-9]+$/;
 
     if (currCity.match(regex) !== null) {
-      var city = currCity.toUpperCase();
+      let city = currCity.toUpperCase();
       await fetch(`http://ctp-zip-api.herokuapp.com/city/${city}`)
         .then(response => {
           if (!response.ok) {
@@ -25,8 +27,11 @@ const CitySearch = () => {
           setZipCodes([]);
           console.log(err);
         })
-    } else {
+
       setCityName(city);
+
+    } else {
+      setCityName([]);
     }
 
   }
@@ -39,33 +44,21 @@ const CitySearch = () => {
       </div>
 
       <div className="container">
-        <div className="my-4 d-flex justify-content-center">
-          <div className="input-group">
-            <div className="input-group-prepend">
-              <span className="input-group-text">City Name</span>
-            </div>
-            <input className="form-control" type='text' onChange={e => handleCityChange(e)} />
+        <div className="row d-flex justify-content-center">
+          <div className="col-lg-6 mx-auto">
+            <CitySearchField onChange={e => handleCityChange(e)} />
           </div>
         </div>
+      </div>
 
-        <div>
-          {zipCodes.length > 0 ?
-            zipCodes.map((zips, index) => {
-              return (
-                <div key={index}>
-                  <div className="row mb-3 d-flex justify-content-center">
-                    <p>{zips}</p>
-                  </div>
-                </div>
-              )
-            })
-            :
-            <div className="row d-flex justify-content-center">
-              <div className="col-lg-6">
-                <h4 className="text-center">No results</h4>
-              </div>
-            </div>}
-        </div>
+      <div className="container">
+        {zipCodes.length > 0 ? <ToggleView fetchedZip={zipCodes}/> :
+          <div className="row d-flex justify-content-center">
+            <div className="col-lg-6">
+              <h4 className="text-center">No results</h4>
+            </div>
+          </div>
+        }
       </div>
     </div>
   );
